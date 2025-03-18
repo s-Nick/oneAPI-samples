@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.5)
+project(PointnetInference LANGUAGES CXX)
+if (DEFINED ENV{ONEAPI_ROOT})
+  if(NOT WIN32)
+    set(CMAKE_CXX_COMPILER icpx)
+    set(CMAKE_C_COMPILER icx)
+else()
+    set(CMAKE_CXX_COMPILER icx)
+endif()
+endif()
+
+add_executable(pointnet pointnet.cpp)
+
+if( DEFINED ENV{ONEAPI_ROOT})
+find_package(DNNL)
+message("-- DNNL found:" ${DNNL_FOUND})
+  if( ${DNNL_FOUND} )
+    message(WARNING "FOUND")
+    target_link_libraries(pointnet PUBLIC DNNL::dnnl)
+    target_include_directories(pointnet PUBLIC $ENV{DNNLROOT}/share/doc/dnnl/examples/)
+  endif()
+else()
+  message(FATAL_ERROR "ONEAPI_ROOT not set. Source oneAPI environment variables to compile the example")
+endif()
+
+target_compile_options(pointnet PUBLIC -fsycl -fsycl-targets=spir64)
+target_link_libraries(pointnet PRIVATE sycl )
+
