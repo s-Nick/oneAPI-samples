@@ -1,21 +1,21 @@
 /*******************************************************************************
-* Copyright Codeplay Software Ltd.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions
-* and limitations under the License.
-*
-*
-* SPDX-License-Identifier: Apache-2.0
-*******************************************************************************/
+ * Copyright Codeplay Software Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *******************************************************************************/
 
 #include <array>
 #include <string>
@@ -94,9 +94,11 @@ struct ConvBiasLayer : public Layer {
 
         dnnl::memory::dim oh, ow;
 
-        //complete formula from documentation -> oh= (ih - kh + ph_l + ph_r)/sh + 1;
+        // complete formula from documentation -> oh= (ih - kh + ph_l + ph_r)/sh +
+        // 1;
         oh = in_h - filt_h + 1;
-        //complete formula from documentation -> ow= (iw - kw + pw_l + pw_r)/sw + 1;
+        // complete formula from documentation -> ow= (iw - kw + pw_l + pw_r)/sw +
+        // 1;
         ow = in_w - filt_w + 1;
 
         // Read weights from binary file
@@ -225,11 +227,11 @@ struct BatchNormLayer : public Layer {
         bnorm_pd = dnnl::batch_normalization_forward::primitive_desc(
                 this->engine_, dnnl::prop_kind::forward_inference, src_md,
                 this->out_desc_, eps_, flags);
+        // Create Primitive
+        bnorm_prim = dnnl::batch_normalization_forward(bnorm_pd);
     }
 
     void execute(dnnl::memory &in_mem) override {
-
-        auto bnorm_prim = dnnl::batch_normalization_forward(bnorm_pd);
 
         // Primitive arguments.
         std::unordered_map<int, dnnl::memory> bnorm_args;
@@ -257,6 +259,7 @@ private:
     bool _relu {true};
 
     dnnl::batch_normalization_forward::primitive_desc bnorm_pd;
+    dnnl::batch_normalization_forward bnorm_prim;
 
     float eps_ = 1.0e-5;
 };
@@ -338,12 +341,12 @@ struct FCLayer : public Layer {
 
         write_to_dnnl_memory(weights.data(), weights_mem);
         write_to_dnnl_memory(bias.data(), bias_mem);
-    }
-
-    void execute(dnnl::memory &in_mem) override {
 
         matmul_pd = dnnl::matmul::primitive_desc(
                 this->engine_, src_md, weights_md, bias_md, this->out_desc_);
+    }
+
+    void execute(dnnl::memory &in_mem) override {
 
         // Create the primitive.
         auto matmul_prim = dnnl::matmul(matmul_pd);
@@ -393,10 +396,12 @@ struct MMLayer : public Layer {
 
         matmul_pd = dnnl::matmul::primitive_desc(
                 this->engine_, src_desc, weights_desc, this->out_desc_);
+
+        // Create Primitive
+        matmul = dnnl::matmul(matmul_pd);
     }
 
     void execute(dnnl::memory &in_mem) override {
-        auto matmul = dnnl::matmul(matmul_pd);
 
         // Primitive arguments.
         std::unordered_map<int, dnnl::memory> matmul_args;
@@ -415,6 +420,7 @@ private:
     dnnl::memory::desc weights_desc;
     dnnl::memory src_mem;
     dnnl::matmul::primitive_desc matmul_pd;
+    dnnl::matmul matmul;
 };
 
 struct SumLayer : public Layer {
@@ -482,7 +488,7 @@ struct LogSoftMaxLayer : public Layer {
         constexpr int axis = 1;
 
         softmax_pd = dnnl::softmax_forward::primitive_desc(this->engine_,
-                dnnl::prop_kind::forward_training, algo, src_md,
+                dnnl::prop_kind::forward_inference, algo, src_md,
                 this->out_desc_, axis);
     }
 
