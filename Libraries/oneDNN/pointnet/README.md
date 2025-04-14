@@ -29,7 +29,7 @@ python3 prepareData.py ModelNet10/ pointnet_model.pth
 
 The weights will be saved to `data/` and the input pointcloud will be saved as `itemName_cloud.bin`.
 
-## Build&Test on a pointcloud
+## Build&Test on a pointcloud on Intel GPUs
 
 To build this example perform the following steps:
 
@@ -49,6 +49,29 @@ make
 ```
 
 The sample executable is built as `pointnet`.
+
+## Build&Test on pointcloud on different hardware
+
+To run pointnet on a different target you need to compile a different oneDNN library that is not
+distributed with the oneapi toolkit, but it is an open source implementation available [here][uxl onednn].
+
+#### 1. Build and  install  appropriate oneDNN
+
+Setup oneAPI development environment as described above.
+Check out oneDNN documentation and build it for the device avaialable to you.
+
+#### 2. Build the program using `cmake`
+
+To use the open source implementation the configuration requires more cmake definition.
+
+```bash
+mkdir build
+cd build
+cmake -DDNNL_DIR=/dir/where/installed/onednn -DDNNL_BASE_DIR=/dir/where/cloned/onednn/repository -DTARGET_ARCH="fsycl-target of your device" ..
+make
+```
+
+If building for NVIDIA GPUs it is available `-DTARGET=NVIDIA` instead of specifying the precise architecture.
 
 #### 3. Run the sample
 
@@ -73,4 +96,5 @@ $ classed as 7 (i.e., sofa)
 [pointnet-paper]: https://arxiv.org/pdf/1612.00593.pdf
 [pytorch]: https://pytorch.org/
 [modelnet]: https://modelnet.cs.princeton.edu/
+[uxl onednn]: https://github.com/uxlfoundation/oneDNN
 
