@@ -11,17 +11,33 @@ endif()
 
 add_executable(pointnet pointnet.cpp)
 
-if( DEFINED ENV{ONEAPI_ROOT})
-find_package(DNNL)
+find_package(DNNL REQUIRED)
+
+if(DEFINED ENV{ONEAPI_ROOT})
 message("-- DNNL found:" ${DNNL_FOUND})
   if( ${DNNL_FOUND} )
     target_link_libraries(pointnet PUBLIC DNNL::dnnl)
     target_include_directories(pointnet PUBLIC $ENV{DNNLROOT}/share/doc/dnnl/examples/)
+    target_compile_options(pointnet PUBLIC -fsycl -fsycl-targets=spir64)
   endif()
 else()
-  message(FATAL_ERROR "ONEAPI_ROOT not set. Source oneAPI environment variables to compile the example")
+if(${DNNL_FOUND} AND DEFINED DNNL_BASE_DIR)
+    target_link_libraries(pointnet PUBLIC DNNL::dnnl)
+    # Copy utils from oneDNN github repo to include directory
+    file(COPY ${DNNL_BASE_DIR}/examples/example_utils.hpp DESTINATION ${DNNL_DIR}/../../../include)
+    target_include_directories(pointnet PUBLIC "${DNNL_DIR}/../../../include")
+  endif()
 endif()
 
-target_compile_options(pointnet PUBLIC -fsycl -fsycl-targets=spir64)
-target_link_libraries(pointnet PRIVATE sycl )
+target_compile_options(pointnet PUBLIC -fsycl)
 
+if(DEFINED TARGET_ARCH)
+  # Specify full target architecture, to increase portability e.g. AMD GPUs
+  target_compile_options(pointnet PUBLIC -fsycl-targets=${TARGET_ARCH})
+elseif(${TARGET} MATCHES "NVIDIA")
+  target_compile_options(pointnet PUBLIC -fsycl-targets=nvptx64-nvidia-cuda)
+elseif(${TARGET} MATCHES "INTEL")
+  target_compile_options(pointnet PUBLIC -fsycl-targets=spir64)
+endif()
+
+target_link_libraries(pointnet PRIVATE sycl )
