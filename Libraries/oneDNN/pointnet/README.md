@@ -17,7 +17,7 @@ pip3 install torch==2.6.0 torchvision torchaudio --index-url https://download.py
 
 A preprocessing script is provided which unpacks the weights from a pre-trained pytorch model. The script also prepares an input pointcloud for testing inference. The pointcloud is made from 3D scans taken from the [ModelNet10][modelnet] dataset. The script requires an installation of [PyTorch][pytorch].
 
-First, download the pre-trained PointNet weights and then move the pth file into the same directory containing the model.
+First, download the pre-trained PointNet weights from SYCLOPS repo ([here][model]) and then move the pth file into the same directory containing the model.
 
 
 ```bash
@@ -97,4 +97,5 @@ $ classed as 7 (i.e., sofa)
 [pytorch]: https://pytorch.org/
 [modelnet]: https://modelnet.cs.princeton.edu/
 [uxl onednn]: https://github.com/uxlfoundation/oneDNN
+[model]: https://github.com/SYCLOPS-Project-EU/Pretrained-Models
 
